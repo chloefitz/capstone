@@ -2,7 +2,7 @@
 
 <?php
 function build_calander($month, $year){
-	//first of all we'll creat an array containing names of all days in a week
+	//first of all we'll creat an array containing names of all days in a week.
 	$daysOfWeek = array('Sunday', 'Monday', 'Tuesday', 'Wednesday','Thursday', 'Friday', 'Saturday');
 	
 	//Then we'll get the frist day of the month that is in the argumnets of this function
