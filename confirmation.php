@@ -7,6 +7,9 @@ Create Date: 4/23/2020
 v1 - Display form values
 v2 - Insert into database
 v3- check for existing bookingID and insert into requestedService Table
+v4 - clean data again just to be sure no hacking nonsense
+stop from reinserting by creating session variable
+v5- send email
 */
 
 // code for error message output
@@ -18,11 +21,18 @@ require_once 'includes/arrays.php';
 require_once 'includes/dbfunctions.php';
 require_once 'includes/functions.php';
 
+$lifetime = 60 * 60 * 24;
+
+session_set_cookie_params($lifetime, '/');
+session_start();
+
 // declare variables
 $name = $phone = $email = $address = $date = 
 $services = $message  = $company 
 = $message = $bookId = $frequency = $propType = 
 $status = $lookupBookId= "";
+
+
 
 // POST data
 $propType = $_POST['propType'];
@@ -30,6 +40,7 @@ $name = $_POST['name'];
 $phone = $_POST['phone'];
 $email = $_POST['email'];
 $address = $_POST['address'];
+$city = $_POST['city'];
 $date = $_POST['date'];
 $service = $_POST['service'];
 $company = $_POST['company'];
@@ -38,6 +49,18 @@ $frequency = $_POST['frequency'];
 $bookedTime = "2:00";
 $status = "Pending";
 
+// clean and sanitize data
+$propType = clean_input($propType);
+$name = clean_input($name);
+$phone = clean_input($phone);
+$email = clean_input($email);
+$address = clean_input($address);
+$city = clean_input($city);
+$date = clean_input($date);
+//$service = clean_input($service);
+$company = clean_input($company);
+$message = clean_input($message);
+$frequency = clean_input($frequency);
 
 // create booking id
 $bookId = random_num(6);
@@ -57,6 +80,7 @@ foreach ($lookupBookId as $value) {
     
 }
 
+if (isset($_SESSION['complete']) == false) {
 
 // insert post data into db customers table
 try{    
@@ -83,6 +107,7 @@ try{
     $statement->closeCursor();
 
     $idCust = $cnxn->lastInsertId();
+    $_SESSION['complete'] = 'success';
 
    //echo $statement->errorCode();    
     
@@ -161,6 +186,15 @@ try{
                 }
         
         }
+        echo ("<h2>Success! Here's your bookingId: $bookId</h2>");
+    echo ("ID $idCust ID $idOrder ID $idService");
+    }
+
+else {
+    $success = $_SESSION['complete'];
+    echo ("<h2>$success Here's your bookingId: $bookId</h2>");
+    echo ("ID $idCust ID $idOrder ID $idService");
+}
 ?>
 
 <html lang="en">
@@ -177,6 +211,7 @@ try{
     <body>
     <?php
         // echo inputs
+        /*
         echo ("Name: $name<br />");
         echo ("Phone: $phone<br />");
         $isEmailValid = isValidEmail($email);
@@ -197,9 +232,10 @@ try{
 
         echo ("<h2>Here's your bookingId: $bookId</h2>");
         echo ("ID $idCust ID $idOrder ID $idService");
+        
 
-        // send email
-        /*
+        
+        
         $to      = 'chloefitz@hotmail.com';
         $subject = 'the subject';
         $message = 'Booking ID: $bookId';
