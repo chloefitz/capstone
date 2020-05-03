@@ -7,7 +7,9 @@ Create Date: 4/21/2020
 v1 - Primary Form
 v2 - Dispaly inputs and create hidden form
 v3 - change services loop to use array from DB from services table
-testedittest
+v4- move verification message, fix services name in feedback
+v5- working on sticky form. Frequency is the last to be fixed.
+
 */
 
 // code for error message output
@@ -29,6 +31,110 @@ $date = $_GET['date'];
 $listofServices = getServiceId();
 $listofCities = getCityId();
 
+
+
+?>
+ <?php
+/*
+The following code lets the customer verify their request before
+sending posted data to the confirmation page
+
+*/
+           
+// run if submit button hit
+if (isset($_POST['formSubmit'])){
+
+    // declare some variables
+    $isEmailValid = $serviceValue = "";
+
+    // POST data
+    $propType = $_POST['propType'];
+    $name = $_POST['name'];
+    $phone = $_POST['phone'];
+    $email = $_POST['email'];
+    $address = $_POST['address'];
+    $city = $_POST['city'];
+    $date = $_POST['date'];
+    $service = $_POST['service'];
+    $company = $_POST['company'];
+    $message = $_POST['message'];
+    $frequency = $_POST['frequency']; 
+
+    // clean and sanitize data
+    $propType = clean_input($propType);
+    $name = clean_input($name);
+    $phone = clean_input($phone);
+    $email = clean_input($email);
+    $address = clean_input($address);
+    $city = clean_input($city);
+    $date = clean_input($date);
+    //$service = clean_input($service);
+    $company = clean_input($company);
+    $message = clean_input($message);
+    $frequency = clean_input($frequency);
+
+
+
+    // CONFIRMATION DATA echo inputs
+    echo ("<h2>Please review your information </h2>");
+    echo ("Name: $name<br />");
+    echo ("Phone: $phone<br />");
+    $isEmailValid = isValidEmail($email);
+    if ($isEmailValid == false) {
+        echo ("<p style='color:red;'>Please provide valid email</p>");
+    }
+    else {
+        echo ("Email: $email<br />");
+    }
+    echo ("Address: $address<br />");
+
+    foreach($listofCities as $cities) {
+        $citiesValue = $cities['cityID'];
+        $citiesName = $cities['city'];
+        if ($citiesValue == $city) {
+            echo ("City: $citiesName<br />");
+        }    
+    }
+    
+    echo ("Date: $date<br />");
+    echo ("PropertyType: $propType<br />");
+    foreach($service as $serviceValue) {
+        foreach($listofServices as $services) {
+            $sValue = $services['serviceID'];
+            $sName = $services['service'];
+            if ($sValue == $serviceValue) {
+                echo ("Services: $sName <br />");
+            }
+        }
+        
+    }
+    echo ("Company: $company<br />");
+    echo ("Frequency: $frequency<br />");
+    echo ("Message: $message<br />");
+
+    // phantom form to commit data
+    echo ("<form method='post' action='http://localhost/Capstone/confirmation/confirmation_v3.php'>
+        <input type='text' name='name' value='$name' hidden>
+        <input type='text' name='phone' value='$phone' hidden>
+        <input type='text' name='email' value='$email' hidden>
+        <input type='text' name='address' value='$address' hidden>
+        <input type='text' name='address' value='$city' hidden>
+        <input type='text' name='date' value='$date' hidden>
+        <input type='text' name='propType' value='$propType' hidden>");
+        
+    foreach($service as $serviceValue) {
+        echo ("<input type='text' name='service[]' value='$serviceValue' hidden>");
+    }
+    
+    echo ("<input type='text' name='company' value='$company' hidden>
+        <input type='text' name='frequency' value='$frequency' hidden>
+        <input type='text' name='message' value='$message' hidden>
+        <input type='submit' name='commitSubmit' value='Submit Request' />");
+
+    echo ("</form>");
+
+
+}
 
 
 ?>
@@ -70,14 +176,21 @@ $listofCities = getCityId();
             foreach($listofCities as $cities) {
                 $citiesValue = $cities['cityID'];
                 $citiesName = $cities['city'];
+            
+                if (isset($_POST['formSubmit']) && $city == $citiesValue) {
+                    echo ("<option value='$$citiesValue' selected>$citiesName</option>");
+                }
+                else {
                 echo ("<option value='$citiesValue'>$citiesName</option>");
+                }
+                
             }
         ?>
         </select>
         <br /><br />
         <label>Address:</label>
         <input type="text" name="address" value="<?php if (
-        isset($_POST['formSubmit'])) echo $_POST['phone']; ?>" required /><br /><br />
+        isset($_POST['formSubmit'])) echo $_POST['address']; ?>" required /><br /><br />
         
         <label>Date of Service:</label>
         <?php echo ("$date <input type='hidden' name='date' value='$date'>"); ?>
@@ -89,11 +202,17 @@ $listofCities = getCityId();
     
         <?php
         
-            foreach($listPropertyType as $propType) {
+        foreach($listPropertyType as $propTypeValue) {
 
-                echo ("<input type='radio' id='propType' name='propType' value='$propType' />
+            if (isset($_POST['formSubmit']) && $_POST['propType'] == $propTypeValue) {
+                echo ("<input type='radio' id='propType' name='propType' value='$propType' checked='checked''/>
                 <label for='$propType'>$propType</label>");
             }
+            else {
+            echo ("<input type='radio' id='propType' name='propType' value='$propTypeValue' />
+            <label for='$propTypeValue'>$propTypeValue</label>");
+            }
+        }
           
             
             
@@ -106,7 +225,14 @@ $listofCities = getCityId();
             foreach($listofServices as $services) {
                 $servicesValue = $services['serviceID'];
                 $servicesName = $services['service'];
-                echo ("<input type='checkbox' name='service[]' value='$servicesValue' />$servicesName <br />");
+
+                if (isset($_POST['formSubmit']) && in_array($servicesValue,$service)) {                
+                echo ("<input type='checkbox' name='service[]' value='$servicesValue' checked='checked' />$servicesName <br />");
+                }
+
+                else {
+                    echo ("<input type='checkbox' name='service[]' value='$servicesValue' />$servicesName <br />");
+                }
             }
           
         ?>
@@ -114,12 +240,21 @@ $listofCities = getCityId();
 
         <br /><br />    
         <label>Frequency of Service</label>
-        <input type='radio' id='Weekly' name='frequency' value='Weekly'  />
-        <label for='Weekly'>Weekly</label>
-        <input type='radio' id='Bi-Weekly' name='frequency' value='Bi-Weekly'  />
-        <label for='Bi-Weekly'>Bi-Weekly</label>
-		<input type='radio' id='Monthly' name='frequency' value='Monthly'  />
-        <label for='Monthly'>Monthly</label>
+        <?php
+        foreach($listfrequency as $frequencyValue) {
+            if (isset($_POST['formSubmit']) && $_POST['frequency'] == $frequencyValue) {
+                echo ("<input type='radio' id='propType' name='propType' value='$frequency' checked='checked'/>
+                <label for='$frequency'>$frequency</label>");
+            }
+            else {
+                 echo ("<input type='radio' id='frequency' name='frequency' value='$frequencyValue' />
+            <label for='$frequencyValue'>$frequencyValue</label>");
+            }
+
+}
+?>
+
+
           
         
         <br /><br />
@@ -131,96 +266,6 @@ $listofCities = getCityId();
         </form>
     
     </body>
-    <?php
-
-           
-        // run if submit button hit
-        if (isset($_POST['formSubmit'])){
-
-            // declare some variables
-            $isEmailValid = $serviceValue = "";
-
-            // POST data
-            $propType = $_POST['propType'];
-            $name = $_POST['name'];
-            $phone = $_POST['phone'];
-            $email = $_POST['email'];
-            $address = $_POST['address'];
-            $city = $_POST['city'];
-            $date = $_POST['date'];
-            $service = $_POST['service'];
-            $company = $_POST['company'];
-            $message = $_POST['message'];
-            $frequency = $_POST['frequency']; 
-
-            // clean and sanitize data
-            $propType = clean_input($propType);
-            $name = clean_input($name);
-            $phone = clean_input($phone);
-            $email = clean_input($email);
-            $address = clean_input($address);
-            $city = clean_input($city);
-            $date = clean_input($date);
-            //$service = clean_input($service);
-            $company = clean_input($company);
-            $message = clean_input($message);
-            $frequency = clean_input($frequency);
-
-
-
-            // echo inputs
-            echo ("Name: $name<br />");
-            echo ("Phone: $phone<br />");
-            $isEmailValid = isValidEmail($email);
-            if ($isEmailValid == false) {
-                echo ("<p style='color:red;'>Please provide valid email</p>");
-            }
-            else {
-                echo ("Email: $email<br />");
-            }
-            echo ("Address: $address<br />");
-
-            foreach($listofCities as $cities) {
-                $citiesValue = $cities['cityID'];
-                $citiesName = $cities['city'];
-                if ($citiesValue == $city) {
-                    echo ("City: $citiesName<br />");
-                }    
-            }
-            
-            echo ("Date: $date<br />");
-            echo ("PropertyType: $propType<br />");
-            foreach($service as $serviceValue) {
-                echo ("Services: $serviceValue <br />");
-            }
-            echo ("Company: $company<br />");
-            echo ("Frequency: $frequency<br />");
-            echo ("Message: $message<br />");
-
-            // phantom form to commit data
-            echo ("<form method='post' action='http://localhost/Capstone/confirmation/confirmation_v3.php'>
-                <input type='text' name='name' value='$name' hidden>
-                <input type='text' name='phone' value='$phone' hidden>
-                <input type='text' name='email' value='$email' hidden>
-                <input type='text' name='address' value='$address' hidden>
-                <input type='text' name='address' value='$city' hidden>
-                <input type='text' name='date' value='$date' hidden>
-                <input type='text' name='propType' value='$propType' hidden>");
-                
-            foreach($service as $serviceValue) {
-                echo ("<input type='text' name='service[]' value='$serviceValue' hidden>");
-            }
-            echo ("<input type='text' name='company' value='$company' hidden>
-                <input type='text' name='frequency' value='$frequency' hidden>
-                <input type='text' name='message' value='$message' hidden>
-                <input type='submit' name='commitSubmit' value='Submit Request' />");
-
-            echo ("</form>");
-    
-        
-    }
-    
-    
-    ?>
+   
 
 </html>
