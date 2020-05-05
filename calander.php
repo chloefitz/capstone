@@ -1,24 +1,26 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 
 <?php
-function build_calander($month, $year){
-	
-
-				
-	$username = "Azeb_S";
-	$password = "880436049";
-	$servername = "localhost";
-	$dbname = "Azeb_S";
-$conn = new mysqli($servername, $username, $password, $dbname);
+/*
+Plugin Name: calendar
+Plugin URI: http://chelan.highline.edu/~csci201
+Description: This is This is the calendar customer interface.
+Version: 1.0
+Author: Domino Developers
+Author URI: http://chelan.highline.edu/~csci201
+*/
+function build_calander($month, $year){		
+		$username = "csci201";
+		$password = "BottleTreefallBrassFreedom!";
+		$servername = "localhost";
+		$dbname = "csci201";
+		$conn = new mysqli($servername, $username, $password, $dbname);
 
 // Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
-	
-//	$mysqli = new mysqli('localhost','books' 'Azeb_S', '880436049');
-   $stmt = $conn->prepare("select * from bookings where MONTH(date) = ? AND YEAR(date) = ?");
+		if ($conn->connect_error) {
+			 die("Connection failed: " . $conn->connect_error);
+		}
+   $stmt = $conn->prepare("select * from orders where MONTH(bookedDate) = ? AND YEAR(bookedDate) = ?");
    
     $stmt->bind_param('ss', $month, $year);
     $bookings = array();
@@ -32,9 +34,6 @@ if ($conn->connect_error) {
             $stmt->close();
         }
     }
-    
-	
-	
 	//first of all we'll creat an array containing names of all days in a week
 	$daysOfWeek = array('Sunday', 'Monday', 'Tuesday', 'Wednesday','Thursday', 'Friday', 'Saturday');
 	
@@ -60,7 +59,7 @@ if ($conn->connect_error) {
 	$calander="<table class='table table-bordered'>";
 	$calander.="<center><h2>$monthName $year</h2>";
 	
-	$calander .="<a class='btn btn-xs btn-primary' href='?month=".date('m', mktime(0, 0, 0, $month-1, 1, $year))."&year=".date('Y', mktime(0,0,0, $month-1, 1, $year))."'>Previous Month</a> ";
+	//$calander .="<a class='btn btn-xs btn-primary' href='?month=".date('m', mktime(0, 0, 0, $month-1, 1, $year))."&year=".date('Y', mktime(0,0,0, $month-1, 1, $year))."'>Previous Month</a> ";
 	$calander .="<a class='btn btn-xs btn-primary' href='?month=".date('m')."&year=".date('Y')."'>Current Month</a> ";
 	$calander .="<a class='btn btn-xs btn-primary' href='?month=".date('m', mktime(0, 0, 0, $month+1, 1, $year))."&year=".date('Y',mktime(0,0,0, $month+1, 1, $year))."'>Next Month</a></center><br>";
 	
@@ -103,7 +102,10 @@ if ($conn->connect_error) {
 		$today = $date==date('Y-m-d')?"today":"";
 		if($date<date('Y-m-d')){
 			$calander.="<td class='booked'><h4>$currentDay</h4><button class=''>N/A</button>";
-		}elseif(in_array($date, $bookings)){
+		}elseif($date==date('Y-m-d')){
+			$calander.="<td class='booked'><h4>$currentDay</h4><button class='today'>Today</button>";
+		}
+		elseif(in_array($date, $bookings)){
             $calander.="<td class='$today'><h4>$currentDay</h4> <button class='btn btn-danger btn-xs'>Already Booked</button>";
          }
 		else{
@@ -132,9 +134,6 @@ if ($conn->connect_error) {
 }
 
 ?>
-
-<html>
-<head>
 	<meta name="viewport"content="width=device-width,initial-scale=1.0">
 	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 	<style>
@@ -152,10 +151,6 @@ if ($conn->connect_error) {
 		}
 		
 	</style>
-	<title>Untitled</title>
-</head>
-
-<body>
 	<div class="container">
 		<div class="row">
 			<div class="col-mid-12">
@@ -176,5 +171,4 @@ if ($conn->connect_error) {
 	</div>
 
 
-</body>
-</html>
+
