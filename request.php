@@ -1,17 +1,15 @@
-<!doctype html>
+
 <?php
 /*
-Author: Chloe Fitzgerald
-Create Date: 4/21/2020
-
-v1 - Primary Form
-v2 - Dispaly inputs and create hidden form
-v3 - change services loop to use array from DB from services table
-v4- move verification message, fix services name in feedback
-v5- working on sticky form. Frequency is the last to be fixed.
-
+Plugin Name: marks_landscape_request
+Plugin URI: http://chelan.highline.edu/~csci201/
+Description: Mark's Landscaping Request Form
+Version: 1.0
+Author: Domino Developers
+Author URI: http://chelan.highline.edu/~csci201/
 */
 
+function marksRequest(){
 // code for error message output
 ini_set('display_errors', 1);
 error_reporting(E_ALL); 
@@ -19,6 +17,7 @@ require_once 'includes/dbconnection.php';
 require_once 'includes/dbfunctions.php';
 require_once 'includes/arrays.php';
 require_once 'includes/functions.php';
+
 
 
 // declare variables
@@ -32,14 +31,6 @@ $listofServices = getServiceId();
 $listofCities = getCityId();
 
 
-
-?>
- <?php
-/*
-The following code lets the customer verify their request before
-sending posted data to the confirmation page
-
-*/
            
 // run if submit button hit
 if (isset($_POST['formSubmit'])){
@@ -76,10 +67,11 @@ if (isset($_POST['formSubmit'])){
 
 
     // CONFIRMATION DATA echo inputs
+    
     echo ("<h2>Please review your information </h2>");
     echo ("Name: $name<br />");
     echo ("Phone: $phone<br />");
-    $isEmailValid = isValidEmail($email);
+    $isEmailValid = isValidEmail($email);  // validat email
     if ($isEmailValid == false) {
         echo ("<p style='color:red;'>Please provide valid email</p>");
     }
@@ -88,7 +80,7 @@ if (isset($_POST['formSubmit'])){
     }
     echo ("Address: $address<br />");
 
-    foreach($listofCities as $cities) {
+    foreach($listofCities as $cities) { //loop got cities output
         $citiesValue = $cities['cityID'];
         $citiesName = $cities['city'];
         if ($citiesValue == $city) {
@@ -98,7 +90,8 @@ if (isset($_POST['formSubmit'])){
     
     echo ("Date: $date<br />");
     echo ("PropertyType: $propType<br />");
-    foreach($service as $serviceValue) {
+
+    foreach($service as $serviceValue) { // loop for services
         foreach($listofServices as $services) {
             $sValue = $services['serviceID'];
             $sName = $services['service'];
@@ -111,18 +104,22 @@ if (isset($_POST['formSubmit'])){
     echo ("Company: $company<br />");
     echo ("Frequency: $frequency<br />");
     echo ("Message: $message<br />");
+    
+    
+
+    
 
     // phantom form to commit data
-    echo ("<form method='post' action='http://localhost/Capstone/confirmation/confirmation_v3.php'>
+    echo ("<form method='post' action='http://localhost/Capstone/confirmation/confirmation_v5.php'>
         <input type='text' name='name' value='$name' hidden>
         <input type='text' name='phone' value='$phone' hidden>
         <input type='text' name='email' value='$email' hidden>
         <input type='text' name='address' value='$address' hidden>
-        <input type='text' name='address' value='$city' hidden>
+        <input type='text' name='city' value='$city' hidden>
         <input type='text' name='date' value='$date' hidden>
         <input type='text' name='propType' value='$propType' hidden>");
         
-    foreach($service as $serviceValue) {
+    foreach($service as $serviceValue) { //loop for service array
         echo ("<input type='text' name='service[]' value='$serviceValue' hidden>");
     }
     
@@ -133,46 +130,46 @@ if (isset($_POST['formSubmit'])){
 
     echo ("</form>");
 
+    }
+    
 
-}
 
 
-?>
 
-<html lang="en">
-
-    <head>
-        <meta charset="utf-8">
-        <title>Request service</title>
-        <meta name="description" content="">
-        <meta name="author" content="">
-
-        <link rel="stylesheet" type="text/css" href="css/style.css">
-    </head>
-
-    <body>
-        
-        <h1>Request an appointment today</h1>
-        <form method="post" action="">
+        // main form input
+        echo ("<h1>Request an appointment today</h1>");
+        echo ("<form method='post' action=''> 
         <label>Your Name:</label>
-        <input type="text" name="name" value="<?php if (
-        isset($_POST['formSubmit'])) echo $_POST['name']; ?>" required /><br /><br />
+        <input type='text' name='name' value="); // name and sticky
+        if (isset($_POST['formSubmit'])) {
+            echo ("'$name'"); 
+            echo ("required /><br /><br />");
+        }
 
-        <label>Company Name:</label>
-        <input type="text" name="company" value="<?php if (
-        isset($_POST['formSubmit'])) echo $_POST['company']; ?>" required /><br /><br />
+        echo ("<label>Company Name:</label>"); // compnay and sticky
+        echo ("<input type='text' name='company' value=");
+        if (isset($_POST['formSubmit'])) {
+            echo ("'$company'"); 
+            echo ("required /><br /><br />");
+        }
+        
+        echo("<label>Phone Number:</label>"); // phone and sticky
+        echo("<input type='tel' name='phone' value=");
+        if (isset($_POST['formSubmit'])) {
+            echo ("'$phone'");
+        echo (" required /><br /><br />");
+        }    
 
-        <label>Phone Number:</label>
-        <input type="tel" name="phone" value="<?php if (
-        isset($_POST['formSubmit'])) echo $_POST['phone']; ?>" required /><br /><br />
+        echo("<label>E-mail:</label>");// email and sticky
+        echo ("<input type='email' name='email' value=");
+        if (isset($_POST['formSubmit'])) {
+            echo ("'$email'"); 
+            echo (" required /><br /><br />");
+        }
 
-        <label>E-mail:</label>
-        <input type="email" name="email" value="<?php if (
-        isset($_POST['formSubmit'])) echo $_POST['email']; ?>" required /><br /><br />
-
-        <label for="city">City:</label>
-        <select id="city" name="city">
-        <?php
+        echo("<label for='city'>City:</label>
+        <select id='city' name='city'>");// city and sticky
+        
             foreach($listofCities as $cities) {
                 $citiesValue = $cities['cityID'];
                 $citiesName = $cities['city'];
@@ -185,29 +182,31 @@ if (isset($_POST['formSubmit'])){
                 }
                 
             }
-        ?>
-        </select>
-        <br /><br />
-        <label>Address:</label>
-        <input type="text" name="address" value="<?php if (
-        isset($_POST['formSubmit'])) echo $_POST['address']; ?>" required /><br /><br />
         
-        <label>Date of Service:</label>
-        <?php echo ("$date <input type='hidden' name='date' value='$date'>"); ?>
-        
-        <br /><br />
-
-    <label>Property Type: </label>  
-     
+        echo ("</select>");
     
-        <?php
+        echo("<br /><br />");
+        echo ("<label>Address:</label>");// address and sticky
+        echo ("<input type='text' name='address' value=");
+        if (isset($_POST['formSubmit'])) {
+            echo ("'$address'");
+            echo (" required /><br /><br />");
+        }
+
+        echo("<label>Date of Service:</label>"); // date
+        echo ("$date <input type='hidden' name='date' value='$date'>");
+        
+        echo("<br /><br />");
+
+        echo ("<label>Property Type: </label>");  
         
         foreach($listPropertyType as $propTypeValue) {
-
+            // property type and sticky
             if (isset($_POST['formSubmit']) && $_POST['propType'] == $propTypeValue) {
-                echo ("<input type='radio' id='propType' name='propType' value='$propType' checked='checked''/>
-                <label for='$propType'>$propType</label>");
+                echo ("<input type='radio' id='propType' name='propType' value='$propType' checked='checked'/>
+               <label for='$propType'>$propType</label>");
             }
+            // property type
             else {
             echo ("<input type='radio' id='propType' name='propType' value='$propTypeValue' />
             <label for='$propTypeValue'>$propTypeValue</label>");
@@ -216,56 +215,66 @@ if (isset($_POST['formSubmit'])){
           
             
             
-        ?>
+       
     
-        <br /><br />
-        <label>Services:</label><br />
-        <?php
+        echo("<br /><br />");
+        echo ("<label>Services:</label><br />");
+      
     
             foreach($listofServices as $services) {
                 $servicesValue = $services['serviceID'];
                 $servicesName = $services['service'];
-
+                // services and sticky
                 if (isset($_POST['formSubmit']) && in_array($servicesValue,$service)) {                
                 echo ("<input type='checkbox' name='service[]' value='$servicesValue' checked='checked' />$servicesName <br />");
                 }
-
+                // services
                 else {
                     echo ("<input type='checkbox' name='service[]' value='$servicesValue' />$servicesName <br />");
                 }
             }
           
-        ?>
+       
 
 
-        <br /><br />    
-        <label>Frequency of Service</label>
-        <?php
+        echo("<br /><br />");    
+        echo ("<label>Frequency of Service</label>");
+        // frequency and sticky
         foreach($listfrequency as $frequencyValue) {
             if (isset($_POST['formSubmit']) && $_POST['frequency'] == $frequencyValue) {
-                echo ("<input type='radio' id='propType' name='propType' value='$frequency' checked='checked'/>
+                echo ("<input type='radio' id='frequency' name='frequency' value='$frequency' checked='checked'/>
                 <label for='$frequency'>$frequency</label>");
             }
+            // frequency
             else {
                  echo ("<input type='radio' id='frequency' name='frequency' value='$frequencyValue' />
             <label for='$frequencyValue'>$frequencyValue</label>");
             }
 
 }
-?>
 
-
-          
         
-        <br /><br />
-        <textarea name="message" rows="10" cols="100" maxlength="300">
+        echo("<br /><br />");// message
+        echo ("<textarea name='message' rows='10' cols='100' maxlength='300'>
         Let us know about any additonal information
         </textarea>
         <br /><br />    
-        <input type="submit" name="formSubmit" value="Continue" /> 
-        </form>
+        <input type='submit' name='formSubmit' value='Continue' /> 
+        </form>");
     
-    </body>
-   
+    
+}   
 
-</html>
+//This function calls the marksRequest function
+function mlr_shortcode() {
+    ob_start(); //This PHP function turns on auto buffering
+    marksRequest();
+
+    return ob_get_clean(); //Discards the buffer contents
+}
+
+//This function registers my shortcode with WordPress and calls the function above = mlr_shortcode
+add_shortcode( 'marks_landscape_request', 'mlr_shortcode' );
+
+
+    ?>
