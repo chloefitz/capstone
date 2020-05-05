@@ -1,8 +1,40 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 
 <?php
-function build_calander($month, $year){
-	//first of all we'll creat an array containing names of all days in a week.
+/*
+Plugin Name: calendar
+Plugin URI: http://chelan.highline.edu/~csci201
+Description: This is This is the calendar customer interface.
+Version: 1.0
+Author: Domino Developers
+Author URI: http://chelan.highline.edu/~csci201
+*/
+function build_calander($month, $year){		
+		$username = "csci201";
+		$password = "BottleTreefallBrassFreedom!";
+		$servername = "localhost";
+		$dbname = "csci201";
+		$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Check connection
+		if ($conn->connect_error) {
+			 die("Connection failed: " . $conn->connect_error);
+		}
+   $stmt = $conn->prepare("select * from orders where MONTH(bookedDate) = ? AND YEAR(bookedDate) = ?");
+   
+    $stmt->bind_param('ss', $month, $year);
+    $bookings = array();
+    if($stmt->execute()){
+        $result = $stmt->get_result();
+        if($result->num_rows>0){
+            while($row = $result->fetch_assoc()){
+                $bookings[] = $row['date'];
+            }
+            
+            $stmt->close();
+        }
+    }
+	//first of all we'll creat an array containing names of all days in a week
 	$daysOfWeek = array('Sunday', 'Monday', 'Tuesday', 'Wednesday','Thursday', 'Friday', 'Saturday');
 	
 	//Then we'll get the frist day of the month that is in the argumnets of this function
@@ -27,16 +59,9 @@ function build_calander($month, $year){
 	$calander="<table class='table table-bordered'>";
 	$calander.="<center><h2>$monthName $year</h2>";
 	
-	$calander.="<a class='btn btn-xs btn-primary'href='?month=".date('m',mktime(0,0,0, $month-1,1,$year)).
-	"&year=".date('Y',mktime(0,0,0, $month-1,1,$year))."'>Previous Month</a>";
-	
-	$calander.="<a class='btn btn-xs btn-primary'href='?month=".date('m').
-	"&year=".date('Y')."'>Current Month</a>";
-	
-	$calander.="<a class='btn btn-xs btn-primary'href='?month=".date('m',mktime(0,0,0, $month+1,1,$year)).
-	"&year=".date('Y',mktime(0,0,0, $month+1,1,$year))."'>Next Month</a></center><br>";
-	
-	
+	//$calander .="<a class='btn btn-xs btn-primary' href='?month=".date('m', mktime(0, 0, 0, $month-1, 1, $year))."&year=".date('Y', mktime(0,0,0, $month-1, 1, $year))."'>Previous Month</a> ";
+	$calander .="<a class='btn btn-xs btn-primary' href='?month=".date('m')."&year=".date('Y')."'>Current Month</a> ";
+	$calander .="<a class='btn btn-xs btn-primary' href='?month=".date('m', mktime(0, 0, 0, $month+1, 1, $year))."&year=".date('Y',mktime(0,0,0, $month+1, 1, $year))."'>Next Month</a></center><br>";
 	
 	$calander.="<tr>";
 	
@@ -54,7 +79,6 @@ function build_calander($month, $year){
 			$calander.= "<td class='empty'></td>";
 		}
 	}
-	
 	
 	
 	//getting the day number
@@ -78,18 +102,16 @@ function build_calander($month, $year){
 		$today = $date==date('Y-m-d')?"today":"";
 		if($date<date('Y-m-d')){
 			$calander.="<td class='booked'><h4>$currentDay</h4><button class=''>N/A</button>";
-		}else{
-			$calander.="<td class='$today'><h4>$currentDay</h4><a href='http://localhost/Capstone/request/request_v3.php?date=".$date."'class='btn btn-success btn-sx'>Book</a>";
+		}elseif($date==date('Y-m-d')){
+			$calander.="<td class='booked'><h4>$currentDay</h4><button class='today'>Today</button>";
+		}
+		elseif(in_array($date, $bookings)){
+            $calander.="<td class='$today'><h4>$currentDay</h4> <button class='btn btn-danger btn-xs'>Already Booked</button>";
+         }
+		else{
+			$calander.="<td class='$today'><h4>$currentDay</h4><a href='request.php?date=".$date."'class='btn btn-success btn-sx'>Book</a>";
 		}
 		
-		//if($dateToday == $date){
-		//	$calander.="<td class='today'rel='$date'><h4>$currentDay</h4>";
-		//	
-		//}else{
-		//	$calander.="<td class'' rel='$date'><h4>$currentDay</h4>";
-		//}
-		
-		//$calander.="<td><h4>$currentDay</h4>";
 		
 		$calander.="</td>";
 		
@@ -112,9 +134,6 @@ function build_calander($month, $year){
 }
 
 ?>
-
-<html>
-<head>
 	<meta name="viewport"content="width=device-width,initial-scale=1.0">
 	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 	<style>
@@ -132,17 +151,18 @@ function build_calander($month, $year){
 		}
 		
 	</style>
-	<title>Untitled</title>
-</head>
-
-<body>
 	<div class="container">
 		<div class="row">
 			<div class="col-mid-12">
 				<?php
 				$dateComponents = getdate();
+				if(isset($_GET['month']) && isset($_GET['year'])){
+                         $month = $_GET['month']; 			     
+                         $year = $_GET['year'];
+                     }else{
 				$month = $dateComponents['mon'];
 				$year = $dateComponents['year'];
+					 }
 				echo build_calander($month,$year);
 				
 				?>
@@ -151,5 +171,4 @@ function build_calander($month, $year){
 	</div>
 
 
-</body>
-</html>
+
