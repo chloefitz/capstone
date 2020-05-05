@@ -1,17 +1,15 @@
-<!doctype html>
+
 <?php
 /*
-Author: Chloe Fitzgerald
-Create Date: 4/23/2020
-
-v1 - Display form values
-v2 - Insert into database
-v3- check for existing bookingID and insert into requestedService Table
-v4 - clean data again just to be sure no hacking nonsense
-stop from reinserting by creating session variable
-v5- send email
+Plugin Name: marks_confirmation
+Plugin URI: http://chelan.highline.edu/~csci201/
+Description: Create booking id and submit request
+Version: 1.0
+Author: Domino Developers
+Author URI: Canvas
 */
 
+function markConf() {
 // code for error message output
 ini_set('display_errors', 1);
 
@@ -82,156 +80,139 @@ foreach ($lookupBookId as $value) {
 
 if (isset($_SESSION['complete']) == false) {
 
-// insert post data into db customers table
-try{    
-    //Define the query
-     $sql = "INSERT INTO Customers(customerName, customerPhoneNumber, customerEmail, 
-     customerAddress, propertyType, companyName) VALUES (:customerName, 
-     :customerPhoneNumber, :customerEmail, :customerAddress,
-     :propertyType,:companyName)" ;   
-
-    //Prepare the statement
-    $statement = $cnxn->prepare($sql);
-
-    //Bind the parameters
-
-    $statement->bindParam(':customerName', $name, PDO::PARAM_STR);
-    $statement->bindParam(':customerPhoneNumber', $phone, PDO::PARAM_STR);
-    $statement->bindParam(':customerEmail', $email, PDO::PARAM_STR);
-    $statement->bindParam(':customerAddress', $address, PDO::PARAM_STR); 
-    $statement->bindParam(':propertyType', $propType, PDO::PARAM_STR);
-    $statement->bindParam(':companyName', $company, PDO::PARAM_STR);
-     
-    //Execute
-    $statement->execute();
-    $statement->closeCursor();
-
-    $idCust = $cnxn->lastInsertId();
-    $_SESSION['complete'] = 'success';
-
-   //echo $statement->errorCode();    
-    
-   }
-    catch (Exception $e){
-        $errorMessage = $e->getMessage();
-        echo $errorMessage;
-    }
-
-    // insert post data into db orders table
+    // insert post data into db customers table
     try{    
         //Define the query
-         $sql = "INSERT INTO Orders(bookedDate, bookedTime, bookingID, 
-         Customers_customerID, frequency, message, status) VALUES (:bookedDate, 
-         :bookedTime, :bookingID, :Customers_customerID,
-         :frequency,:message, :status)" ;   
-    
+        $sql = "INSERT INTO Customers(customerName, customerPhoneNumber, customerEmail, 
+        customerAddress, propertyType, companyName) VALUES (:customerName, 
+        :customerPhoneNumber, :customerEmail, :customerAddress,
+        :propertyType,:companyName)" ;   
+
         //Prepare the statement
         $statement = $cnxn->prepare($sql);
-    
+
         //Bind the parameters
-    
-        $statement->bindParam(':bookedDate', $date, PDO::PARAM_STR);
-        $statement->bindParam(':bookedTime', $bookedTime, PDO::PARAM_STR);
-        $statement->bindParam(':bookingID', $bookId, PDO::PARAM_STR);
-        $statement->bindParam(':Customers_customerID', $idCust, PDO::PARAM_STR);
-        $statement->bindParam(':frequency', $frequency, PDO::PARAM_STR); 
-        $statement->bindParam(':message', $message, PDO::PARAM_STR);
-        $statement->bindParam(':status', $status, PDO::PARAM_STR);     
+
+        $statement->bindParam(':customerName', $name, PDO::PARAM_STR);
+        $statement->bindParam(':customerPhoneNumber', $phone, PDO::PARAM_STR);
+        $statement->bindParam(':customerEmail', $email, PDO::PARAM_STR);
+        $statement->bindParam(':customerAddress', $address, PDO::PARAM_STR); 
+        $statement->bindParam(':propertyType', $propType, PDO::PARAM_STR);
+        $statement->bindParam(':companyName', $company, PDO::PARAM_STR);
+        
         //Execute
         $statement->execute();
         $statement->closeCursor();
 
-        $idOrder = $cnxn->lastInsertId();
-    
-       //echo $statement->errorCode();    
-        
-       }
+        $idCust = $cnxn->lastInsertId();
+        $_SESSION['complete'] = 'success';
 
+    //echo $statement->errorCode();    
+        
+    }
         catch (Exception $e){
             $errorMessage = $e->getMessage();
             echo $errorMessage;
         }
 
+        // insert post data into db orders table
+        try{    
+            //Define the query
+            $sql = "INSERT INTO Orders(bookedDate, bookedTime, bookingID, 
+            Customers_customerID, frequency, message, status) VALUES (:bookedDate, 
+            :bookedTime, :bookingID, :Customers_customerID,
+            :frequency,:message, :status)" ;   
         
+            //Prepare the statement
+            $statement = $cnxn->prepare($sql);
+        
+            //Bind the parameters
+        
+            $statement->bindParam(':bookedDate', $date, PDO::PARAM_STR);
+            $statement->bindParam(':bookedTime', $bookedTime, PDO::PARAM_STR);
+            $statement->bindParam(':bookingID', $bookId, PDO::PARAM_STR);
+            $statement->bindParam(':Customers_customerID', $idCust, PDO::PARAM_STR);
+            $statement->bindParam(':frequency', $frequency, PDO::PARAM_STR); 
+            $statement->bindParam(':message', $message, PDO::PARAM_STR);
+            $statement->bindParam(':status', $status, PDO::PARAM_STR);     
+            //Execute
+            $statement->execute();
+            $statement->closeCursor();
 
-
-
-        // insert post data into db requestedServices table
-        foreach ($service as $value) {
-            try{    
-                //Define the query
-                 $sql = "INSERT INTO requestedServices(Orders_orderID, Services_serviceID) 
-                 VALUES (:Orders_orderID, :Services_serviceID)" ;   
-            
-                //Prepare the statement
-                $statement = $cnxn->prepare($sql);
-            
-                //Bind the parameters
-            
-                $statement->bindParam(':Orders_orderID', $idOrder, PDO::PARAM_INT);
-                $statement->bindParam(':Services_serviceID', $value, PDO::PARAM_INT);
+            $idOrder = $cnxn->lastInsertId();
         
-                //Execute
-                $statement->execute();
-                $statement->closeCursor();
-        
-                $idService = $cnxn->lastInsertId();
+        //echo $statement->errorCode();    
             
-               //echo $statement->errorCode();    
-                
-               }
-                catch (Exception $e){
-                    $errorMessage = $e->getMessage();
-                    echo $errorMessage;
-                }
-        
         }
-        echo ("<h2>Success! Here's your bookingId: $bookId</h2>");
-    echo ("ID $idCust ID $idOrder ID $idService");
-    }
 
-else {
-    $success = $_SESSION['complete'];
-    echo ("<h2>$success Here's your bookingId: $bookId</h2>");
-    echo ("ID $idCust ID $idOrder ID $idService");
+            catch (Exception $e){
+                $errorMessage = $e->getMessage();
+                echo $errorMessage;
+            }
+
+            
+
+
+
+            // insert post data into db requestedServices table
+            foreach ($service as $value) {
+                try{    
+                    //Define the query
+                    $sql = "INSERT INTO requestedServices(Orders_orderID, Services_serviceID) 
+                    VALUES (:Orders_orderID, :Services_serviceID)" ;   
+                
+                    //Prepare the statement
+                    $statement = $cnxn->prepare($sql);
+                
+                    //Bind the parameters
+                
+                    $statement->bindParam(':Orders_orderID', $idOrder, PDO::PARAM_INT);
+                    $statement->bindParam(':Services_serviceID', $value, PDO::PARAM_INT);
+            
+                    //Execute
+                    $statement->execute();
+                    $statement->closeCursor();
+            
+                    $idService = $cnxn->lastInsertId();
+                
+                //echo $statement->errorCode();    
+                    
+                }
+                    catch (Exception $e){
+                        $errorMessage = $e->getMessage();
+                        echo $errorMessage;
+                    }
+            
+            }
+            echo ("<h2>Success! Here's your bookingId: $bookId</h2>");
+        echo ("ID $idCust ID $idOrder ID $idService");
+        }
+
+    else {
+        
+        $success = $_SESSION['complete'];
+        echo ("<h2>You will receive and email shortly</h2>");
+        
+    }
 }
+    //This function calls the marksRequest function
+    function mlc_shortcode() {
+    ob_start(); //This PHP function turns on auto buffering
+    markConf();
+
+    return ob_get_clean(); //Discards the buffer contents
+}
+
+//This function registers my shortcode with WordPress and calls the function above = mlr_shortcode
+add_shortcode( 'marks_landscape_confirmation', 'mlc_shortcode' );
+    
 ?>
 
-<html lang="en">
 
-    <head>
-        <meta charset="utf-8">
-        <title>Request service</title>
-        <meta name="description" content="">
-        <meta name="author" content="">
-
-        <link rel="stylesheet" type="text/css" href="css/style.css">
-    </head>
     
-    <body>
+    
     <?php
-        // echo inputs
         /*
-        echo ("Name: $name<br />");
-        echo ("Phone: $phone<br />");
-        $isEmailValid = isValidEmail($email);
-        if ($isEmailValid == "false") {
-            echo ("Please provide valid email<br />");
-        }
-        else {
-            echo ("Email: $email<br />");
-        }
-        echo ("Address: $address<br />");
-        echo ("Date: $date<br />");
-        foreach($service as $serviceValue) {
-            echo ("Services: $serviceValue <br />");
-        }
-        echo ("Company: $company<br />");
-        echo ("Frequency: $frequency<br />");
-        echo ("Message: $message<br />");
-
-        echo ("<h2>Here's your bookingId: $bookId</h2>");
-        echo ("ID $idCust ID $idOrder ID $idService");
         
 
         
@@ -251,7 +232,7 @@ else {
 
     
     ?>
-    </body>
+   
 
-</html>
+
 
