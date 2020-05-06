@@ -13,10 +13,9 @@ function marksRequest(){
 // code for error message output
 ini_set('display_errors', 1);
 error_reporting(E_ALL); 
-require_once 'includes/dbconnection.php';
-require_once 'includes/dbfunctions.php';
-require_once 'includes/arrays.php';
-require_once 'includes/functions.php';
+require_once __DIR__ . "/dfunctions.php";
+require_once __DIR__ . "/arrays.php";
+require_once __DIR__ . "/ml_functions.php";
 
 
 
