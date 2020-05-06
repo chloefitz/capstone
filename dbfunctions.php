@@ -2,10 +2,10 @@
 // function to get bookingIds
 function getBookingId(){
     
-    global $cnxn;
+    global $wpdb;
     $sql = "SELECT bookingID
     FROM orders;";
-    $statement = $cnxn->prepare($sql);
+    $statement = $wpdb->prepare($sql);
     $statement->execute();
     $result = $statement->fetchAll();
     $statement->closeCursor();
@@ -15,23 +15,22 @@ function getBookingId(){
 
 // function to get service
 function getServiceId(){
-    global $cnxn;
+    global $wpdb;
     $sql = "SELECT serviceID, service
     FROM Services;";
-    $statement = $cnxn->prepare($sql);
+    $statement = $wpdb->prepare($sql);
     $statement->execute();
     $result = $statement->fetchAll();
     $statement->closeCursor();
 
     return $result;
 }
-
 // function to get cites
 function getCityId(){
-    global $cnxn;
+    global $wpdb;
     $sql = "SELECT cityID, city
     FROM Location;";
-    $statement = $cnxn->prepare($sql);
+    $statement = $wpdb->prepare($sql);
     $statement->execute();
     $result = $statement->fetchAll();
     $statement->closeCursor();
