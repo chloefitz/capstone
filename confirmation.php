@@ -14,10 +14,9 @@ function markConf() {
 ini_set('display_errors', 1);
 
 error_reporting(E_ALL); 
-require_once 'includes/dbconnection.php';
-require_once 'includes/arrays.php';
-require_once 'includes/dbfunctions.php';
-require_once 'includes/functions.php';
+require_once __DIR__ . "/dfunctions.php";
+require_once __DIR__ . "/arrays.php";
+require_once __DIR__ . "/ml_functions.php";
 
 $lifetime = 60 * 60 * 24;
 
@@ -89,7 +88,7 @@ if (isset($_SESSION['complete']) == false) {
         :propertyType,:companyName)" ;   
 
         //Prepare the statement
-        $statement = $cnxn->prepare($sql);
+        $statement = $wpdb->prepare($sql);
 
         //Bind the parameters
 
@@ -104,7 +103,7 @@ if (isset($_SESSION['complete']) == false) {
         $statement->execute();
         $statement->closeCursor();
 
-        $idCust = $cnxn->lastInsertId();
+        $idCust = $wpdb->lastInsertId();
         $_SESSION['complete'] = 'success';
 
     //echo $statement->errorCode();    
@@ -124,7 +123,7 @@ if (isset($_SESSION['complete']) == false) {
             :frequency,:message, :status)" ;   
         
             //Prepare the statement
-            $statement = $cnxn->prepare($sql);
+            $statement = $wpdb->prepare($sql);
         
             //Bind the parameters
         
@@ -139,7 +138,7 @@ if (isset($_SESSION['complete']) == false) {
             $statement->execute();
             $statement->closeCursor();
 
-            $idOrder = $cnxn->lastInsertId();
+            $idOrder = $wpdb->lastInsertId();
         
         //echo $statement->errorCode();    
             
@@ -162,7 +161,7 @@ if (isset($_SESSION['complete']) == false) {
                     VALUES (:Orders_orderID, :Services_serviceID)" ;   
                 
                     //Prepare the statement
-                    $statement = $cnxn->prepare($sql);
+                    $statement = $wpdb->prepare($sql);
                 
                     //Bind the parameters
                 
@@ -173,7 +172,7 @@ if (isset($_SESSION['complete']) == false) {
                     $statement->execute();
                     $statement->closeCursor();
             
-                    $idService = $cnxn->lastInsertId();
+                    $idService = $wpdb->lastInsertId();
                 
                 //echo $statement->errorCode();    
                     
